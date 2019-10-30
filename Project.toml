@@ -1,0 +1,8 @@
+name = "Signatures"
+uuid = "df5a2326-c3ea-4184-be62-c9e79f43451b"
+authors = ["akels <akels14@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Nettle = "49dea1ee-f6fa-5aa6-9a11-8816cee7d4b9"
+Paillier = "84e01822-a062-59e4-8289-aa032edeecdd"
