@@ -1,5 +1,5 @@
-name = "Signatures"
-uuid = "df5a2326-c3ea-4184-be62-c9e79f43451b"
+name = "CryptoSignatures"
+uuid = "35cc5888-0c46-470e-89c7-eafcaf79a1aa"
 authors = ["akels <akels14@gmail.com>"]
 version = "0.1.0"
 

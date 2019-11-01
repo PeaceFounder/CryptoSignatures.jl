@@ -1,4 +1,4 @@
-using Signatures
+using CryptoSignatures
 using Test
 
 import Paillier

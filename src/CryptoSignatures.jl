@@ -1,4 +1,4 @@
-module Signatures
+module CryptoSignatures
 
 ### This is a meta package which wraps all known asymmetric cryptographic libraries in a consistent interface for performing this simple task of making signatures
 
@@ -22,7 +22,7 @@ Signer(keypair) = Signer(keypair...)
 ### One initiates signer with a simple
 # Signer(Cryptomodule.generatekeypair()) 
 
-verify(data,s::Signature) = decrypt(s.secret,s.pubkey)==s.hash.hash && ishash(data,s.hash)
+verify(data,s::Signature) = decrypt(s.secret,s.pubkey)==s.hash.hash && verify(data,s.hash)
 
 id(s::Signature) = s.pubkey ### One can overwrite this as one wishes
 id(s::Signer) = s.pubkey
@@ -60,7 +60,7 @@ struct SHA256 <: Hash
     end
 end
 
-ishash(data,hash::Hash) = typeof(hash)(data).hash==hash.hash
+verify(data,hash::Hash) = typeof(hash)(data).hash==hash.hash
 
 
 ### A temporary wrapper for Paillier. Fixing api. 
