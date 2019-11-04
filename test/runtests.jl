@@ -6,7 +6,7 @@ import Paillier
 signer = Signer(Paillier.generate_paillier_keypair(1024))
 
 data = "Hello World!"
-signature = sign(data,SHA256,signer)
+signature = rsasign(data,hash,signer)
 
 @test verify(data,signature)==true
 
