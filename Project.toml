@@ -4,7 +4,7 @@ authors = ["akels <akels14@gmail.com>"]
 version = "0.1.0"
 
 [deps]
-Paillier = "84e01822-a062-59e4-8289-aa032edeecdd"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 julia = "1"

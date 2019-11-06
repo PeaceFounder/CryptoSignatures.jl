@@ -1,23 +1,51 @@
-# TODO: Implement dsasign and verify algorithms
+struct DSASignature{H,P} <: AbstractSignature
+    hash::H # hash could have its own type
+    r 
+    s
+    pubkey::P #
+end
 
-# """
-# Returns a Signature for a given PrivateKey and data 𝑧
-# pksign(pk::PrivateKey, 𝑧::Integer) -> Signature
-# """
-# function dsasign(pk::PrivateKey, 𝑧::Integer)
-#     ### N is q of the DSA signature scheme
-#     ### For generating k I could use Paillier again. 
-#     𝑘 = rand(big.(0:q))
-#     𝑟 = mod(value(G^k),q) ### The only place where the group enters.
+import Base.mod
+mod(G::CyclicGroup) = mod(value(G),order(G))
+mod(n::Integer,G::CyclicGroup) = mod(n,order(G))
+
+modinv(k::Integer,G::CyclicGroup) = powermod(k,order(G)-2,order(G))
+
+function DSASignature(hash,signer::AbstractSigner,G::CyclicGroup)
+
+    h = Integer(hash)
+    x = Integer(signer.privkey)
+ 
+    k = rand(1:order(G)) ### chooses a number from 0 to q 
+    r = mod(G^k)
+    kinv = modinv(k,G)
+    s = mod(kinv*(h + x*r),G)
     
-#     ### Interesting. It was used in ECDSA
-#     ### Perhaps that means for cyclic groups I need to implement modq?
+    if s==0
+        return DSASignature(hash,key,G)
+    else
+        return DSASignature(hash,r,s,signer.pubkey)
+    end
+end
 
-#     𝑘⁻¹ = powermod(𝑘, q - 2, q) ### Why is it an inverse? Probably that needs to be covered by the group.
-#     ### Under s theese are numbers. One should ensure that they are big.
-#     𝑠 = mod((𝑧 + 𝑟^pk.𝑒)^𝑘⁻¹, q) ### Adding group elements. Perhaps multiplication of primes works for 
-#     if 𝑠 > N / 2
-#         𝑠 = N - 𝑠
-#     end
-#     return Signature(𝑟, 𝑠)
-# end
+function verify(sr::DSASignature,G::CyclicGroup)
+    r,s = sr.r,sr.s
+    h = Integer(sr.hash)
+    Y = getY(sr.pubkey,G)
+
+    q = order(G)
+    if 0<r<q || 0<s<q
+        return false
+    end
+
+    sinv = modinv(s,G)
+    w = mod(sinv,G)
+    u1 = mod(h*w,G)
+    u2 = mod(r*w,G)
+    v = mod(G^u1 * Y^u2)
+    if v==r
+        return true
+    else
+        return false
+    end
+end
