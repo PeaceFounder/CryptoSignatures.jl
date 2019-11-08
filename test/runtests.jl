@@ -2,6 +2,29 @@ using Test
 using CryptoSignatures
 using CryptoGroups
 
+function signaturetest(s,G)
+    @test verify(s,G)
+    
+    # Changing message
+    
+    vs1 = DSASignature(signature.hash+1,signature.r,signature.s,signature.pubkey)
+    @test verify(vs1,G)==false
+
+    # Changing signer
+
+    s = Signer(G) 
+    vs2 = DSASignature(signature.hash,signature.r,signature.s,s.pubkey)
+    @test verify(vs2,G)==false
+
+    # Tampering the signature
+    
+    vs3 = DSASignature(signature.hash,signature.r+1,signature.s,signature.pubkey)
+    @test verify(vs3,G)==false
+
+    vs4 = DSASignature(signature.hash,signature.r,signature.s+1,signature.pubkey)
+    @test verify(vs4,G)==false
+end
+
 ### DSA signatures
 
 # PrimeGroup
@@ -12,7 +35,7 @@ s = Signer(G)
 h = hash(3434)
 signature = DSASignature(h,s,G)
 
-@show verify(signature,G)
+signaturetest(signature,G)
 
 # EllipticGroup
 
@@ -22,24 +45,6 @@ s = Signer(G)
 h = hash(3434)
 signature = DSASignature(h,s,G)
 
-@show verify(signature,G)
-
-### Old-Stuff
-
-# import Paillier
-
-# signer = Signer(Paillier.generate_paillier_keypair(1024))
-
-# data = "Hello World!"
-# signature = rsasign(data,hash,signer)
-
-# @test verify(data,signature)==true
-
-# # Now let's check message attack
-
-# data2 = "Hello World! (Villan)"
-# @test verify(data2,signature)==false
-
-
+signaturetest(signature,G)
 
 
