@@ -35,10 +35,11 @@ modinv_fermat(k::Integer,a::Integer) = powermod(k,a-2,a)
 
 modinv(k::Integer,G::CyclicGroup) = modinv_euclidean(k,order(G))
 
-function DSASignature(hash,signer::AbstractSigner,G::CyclicGroup)
+function DSASignature(hash,signer::AbstractSigner)
 
     h = BigInt(hash)
     x = BigInt(signer.privkey)
+    G = signer.G
  
     k = rand(1:order(G)) ### chooses a number from 0 to q 
     r = mod(G^k)
@@ -58,7 +59,7 @@ end
 function verify(sr::DSASignature,G::CyclicGroup)
     r,s = sr.r,sr.s
     h = BigInt(sr.hash)
-    Y = getY(sr.pubkey,G)
+    Y = typeof(G)(sr.pubkey,G) 
 
     0<r<order(G) || return false
     0<s<order(G) || return false

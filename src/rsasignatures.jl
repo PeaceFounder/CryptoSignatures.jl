@@ -17,10 +17,10 @@ function RSASignature(data,hash,s::Signer{K,T}) # where K<:AbstractEncryptionKey
     return RSASignature(h,encrypt(h,s.privkey),s.pubkey)
 end
 
-### An exception when one uses Paillier for the job. But with high probably this is shit.
-import Paillier
+# ### An exception when one uses Paillier for the job. But with high probably this is shit.
+# import Paillier
 
-encrypt(data::Integer,priv::Paillier.PublicKey) = Paillier.encrypt(priv,data)
-#encrypt(data::Hash,priv::Paillier.PublicKey) = encrypt(data.hash,priv) # data.hash must be integer
+# encrypt(data::Integer,priv::Paillier.PublicKey) = Paillier.encrypt(priv,data)
+# #encrypt(data::Hash,priv::Paillier.PublicKey) = encrypt(data.hash,priv) # data.hash must be integer
 
-decrypt(data,pub::Paillier.PrivateKey) = Paillier.decrypt(pub,data)
+# decrypt(data,pub::Paillier.PrivateKey) = Paillier.decrypt(pub,data)

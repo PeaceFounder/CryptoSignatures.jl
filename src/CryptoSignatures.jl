@@ -35,26 +35,13 @@ struct Signer{K,P} <: AbstractSigner
     G::AbstractGroup
 end
 
-#Signer(keypair) = Signer(keypair...)
-
 function Signer(G::AbstractGroup;rng=rng())
     x = rand(1:order(G))
-    y = value(G^x)
+    y = binary(G^x)
     Signer(x,y,G)
 end
 
-getY(y::Integer,G::AbstractGroup) = typeof(G)(y,G)
-getY(Y::EllipticGroup,G::EllipticGroup) = Y
-
-### Exception until I figure out a way to get Y from y knowing G.
-function Signer(G::EllipticGroup;rng=rng())
-    x = rand(1:order(G))
-    Y = G^x
-    Signer(x,Y,G)
-end
-
 ### There are many different ways one could sing stuff. 
-
 # include("rsasignatures.jl")
 include("dsasignatures.jl")
 

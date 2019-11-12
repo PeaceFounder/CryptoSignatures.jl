@@ -33,7 +33,7 @@ G = CryptoGroups.MODP160Group()
 s = Signer(G) 
 
 h = hash(3434)
-signature = DSASignature(h,s,G)
+signature = DSASignature(h,s)
 
 signaturetest(signature,G)
 
@@ -43,7 +43,7 @@ G = CryptoGroups.Scep256k1Group()
 s = Signer(G) 
 
 h = hash(3434)
-signature = DSASignature(h,s,G)
+signature = DSASignature(h,s)
 
 signaturetest(signature,G)
 
