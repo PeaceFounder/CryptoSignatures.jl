@@ -1,7 +1,7 @@
 name = "CryptoSignatures"
 uuid = "35cc5888-0c46-470e-89c7-eafcaf79a1aa"
 authors = ["akels <akels14@gmail.com>"]
-version = "0.2.1"
+version = "0.2.0"
 
 [deps]
 CryptoGroups = "bc997328-bedd-407e-bcd3-5758e064a52d"
