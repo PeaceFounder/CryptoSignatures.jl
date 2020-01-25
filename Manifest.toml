@@ -3,11 +3,16 @@
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
-[[CryptoGroups]]
-deps = ["ECC", "Mods", "Paillier", "Primes", "Random"]
-git-tree-sha1 = "bb0010c75b48901012f5bd567ef4e82a3ca3278f"
-uuid = "bc997328-bedd-407e-bcd3-5758e064a52d"
+[[BitConverter]]
+git-tree-sha1 = "5274a781a2e71cfb9a2083dfcd2ca5318716a660"
+uuid = "3a3ce9e8-98e7-11e9-0fa0-055639f146d3"
 version = "0.1.1"
+
+[[CryptoGroups]]
+deps = ["BitConverter", "ECC", "Mods", "Paillier", "Primes", "Random"]
+git-tree-sha1 = "85c8ff8078d384a7d7c1ce22cc255f698731eed7"
+uuid = "bc997328-bedd-407e-bcd3-5758e064a52d"
+version = "0.1.2"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
