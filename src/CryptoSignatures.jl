@@ -19,11 +19,12 @@ id(s::AbstractSignature) = s.pubkey ### One can overwrite this as one wishes
 """
 Never use this for deployed application!!!
 """
-verify(data,hashnum::UInt64) = hash(data)==hashnum
+#verify(data,hashnum::UInt64) = hash("$data")==hashnum
+verify(data,hash) = errror("Must be implemented by hash type.")
 verify(data,s::AbstractSignature,G::AbstractGroup) = verify(s,G) && verify(data,s.hash)
 
 abstract type AbstractSigner end
-id(s::AbstractSigner) = s.pubkey
+#id(s::AbstractSigner) = s.pubkey
 
 abstract type AbstractEncryptionKey end
 abstract type AbstractDecryptionKey end
@@ -37,14 +38,17 @@ end
 
 function Signer(G::AbstractGroup;rng=rng())
     x = rand(1:order(G))
-    y = binary(G^x)
+    y = value(G^x)
     Signer(x,y,G)
 end
+
+import Base.==
+==(x::Signer,y::Signer) = x.privkey==y.privkey && x.pubkey==y.pubkey && x.G==y.G
 
 ### There are many different ways one could sing stuff. 
 # include("rsasignatures.jl")
 include("dsasignatures.jl")
 
-export verify, rsasign, id, Signer, DSASignature
+export verify, Signer, DSASignature
 
 end # module

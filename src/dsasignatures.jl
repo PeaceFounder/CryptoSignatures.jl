@@ -5,6 +5,8 @@ struct DSASignature{H,P} <: AbstractSignature
     pubkey::P #
 end
 
+==(x::DSASignature,y::DSASignature) = x.hash==y.hash && x.r==y.r && x.s==y.s && x.pubkey==y.pubkey
+
 import Base.mod
 mod(G::CyclicGroup) = mod(value(G),order(G))
 mod(n::Integer,G::CyclicGroup) = mod(n,order(G))
