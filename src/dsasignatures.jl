@@ -1,9 +1,10 @@
-struct DSASignature{H,P} <: AbstractSignature
-    hash::H # hash could have its own type
-    r 
-    s
-    pubkey::P #
+struct DSASignature{T} <: AbstractSignature where T<:Integer
+    hash::T
+    r::T
+    s::T
+    pubkey::T
 end
+
 
 ==(x::DSASignature,y::DSASignature) = x.hash==y.hash && x.r==y.r && x.s==y.s && x.pubkey==y.pubkey
 
@@ -78,3 +79,24 @@ function verify(sr::DSASignature,G::CyclicGroup)
         return false
     end
 end
+
+
+import Base.Dict
+function Dict(signature::DSASignature)
+    config = Dict()
+    config["hash"] = string(signature.hash,base=16)
+    config["pub"] = string(signature.pubkey,base=16)
+    config["r"] = string(signature.r,base=16)
+    config["s"] = string(signature.s,base=16)
+    return config
+end
+
+function DSASignature{BigInt}(dict::Dict)
+    hash = parse(BigInt,dict["hash"],base=16)
+    r = parse(BigInt,dict["r"],base=16)
+    s = parse(BigInt,dict["s"],base=16)
+    pub = parse(BigInt,dict["pub"],base=16)
+    DSASignature(hash,r,s,pub)
+end                 
+
+

@@ -32,7 +32,7 @@ end
 G = CryptoGroups.MODP160Group()
 s = Signer(G) 
 
-h = hash(3434)
+h = BigInt(hash(3434))
 signature = DSASignature(h,s)
 
 signaturetest(signature,G)
@@ -42,9 +42,13 @@ signaturetest(signature,G)
 G = CryptoGroups.Scep256k1Group()
 s = Signer(G) 
 
-h = hash(3434)
+h = BigInt(hash(3434))
 signature = DSASignature(h,s)
 
 signaturetest(signature,G)
+
+# Now some convinience methods
+@test DSASignature{BigInt}(Dict(signature)) == signature
+@test Signer{BigInt}(Dict(s),G) == s
 
 

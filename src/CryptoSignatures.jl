@@ -30,11 +30,26 @@ abstract type AbstractEncryptionKey end
 abstract type AbstractDecryptionKey end
 
 # The singer does store group to prevent the private key to be accidentally missused with different group which would lower the security. And the singature would be useless in such case.
-struct Signer{K,P} <: AbstractSigner
-    privkey::K
-    pubkey::P
+struct Signer{T} <: AbstractSigner where T<:Integer
+    privkey::T
+    pubkey::T
     G::AbstractGroup
 end
+
+import Base.Dict
+function Dict(signer::Signer)
+    dict = Dict()
+    dict["priv"] = string(signer.privkey,base=16)
+    dict["pub"] = string(signer.pubkey,base=16)
+    return dict
+end
+
+function Signer{BigInt}(dict::Dict,G::AbstractGroup)
+    priv = parse(BigInt,dict["priv"],base=16)
+    pub = parse(BigInt,dict["pub"],base=16)
+    Signer(priv,pub,G)
+end
+
 
 function Signer(G::AbstractGroup;rng=rng())
     x = rand(1:order(G))
