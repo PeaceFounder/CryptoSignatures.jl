@@ -1,69 +1,107 @@
 module CryptoSignatures
 
-using CryptoGroups
-using Random 
+using CryptoGroups: generator, specialize, octet, <|, gx, gy, ECP, EC2N, Koblitz, CryptoGroups, ECPoint, order, modinv
+using CryptoGroups.Specs: octet2int
 
-rng() = RandomDevice()
+using Nettle
 
-# const _default_rng = Ref{RandomDevice}()
-# function __init__()
-#     _default_rng[] = RandomDevice()
-# end
 
-# default_rng() = _default_rng[]
-
-abstract type AbstractSignature end
-
-id(s::AbstractSignature) = s.pubkey ### One can overwrite this as one wishes
-
-"""
-Never use this for deployed application!!!
-"""
-#verify(data,hashnum::UInt64) = hash("$data")==hashnum
-verify(data,hash) = errror("Must be implemented by hash type.")
-verify(data,s::AbstractSignature,G::AbstractGroup) = verify(s,G) && verify(data,s.hash)
-
-abstract type AbstractSigner end
-#id(s::AbstractSigner) = s.pubkey
-
-abstract type AbstractEncryptionKey end
-abstract type AbstractDecryptionKey end
-
-# The singer does store group to prevent the private key to be accidentally missused with different group which would lower the security. And the singature would be useless in such case.
-struct Signer{T} <: AbstractSigner where T<:Integer
-    privkey::T
-    pubkey::T
-    G::AbstractGroup
-end
-
-import Base.Dict
-function Dict(signer::Signer)
-    dict = Dict()
-    dict["priv"] = string(signer.privkey,base=16)
-    dict["pub"] = string(signer.pubkey,base=16)
-    return dict
-end
-
-function Signer{BigInt}(dict::Dict,G::AbstractGroup)
-    priv = parse(BigInt,dict["priv"],base=16)
-    pub = parse(BigInt,dict["pub"],base=16)
-    Signer(priv,pub,G)
+struct DSA
+    r::BigInt
+    s::BigInt
 end
 
 
-function Signer(G::AbstractGroup;rng=rng())
-    x = rand(1:order(G))
-    y = value(G^x)
-    Signer(x,y,G)
+struct ECDSAContext
+    curve::Union{ECP, EC2N, Koblitz}
+    hasher::Union{String, Nothing}
 end
 
-import Base.==
-==(x::Signer,y::Signer) = x.privkey==y.privkey && x.pubkey==y.pubkey && x.G==y.G
+CryptoGroups.generator(ctx::ECDSAContext) = generator(ctx.curve)
 
-### There are many different ways one could sing stuff. 
-# include("rsasignatures.jl")
-include("dsasignatures.jl")
 
-export verify, Signer, DSASignature
+H(message::Vector{UInt8}, hasher) = octet2int(hex2bytes(hexdigest(hasher, message)))
+H(message::Vector{UInt8}, ::Nothing) = octet2int(message) # for situations where hash is computed externally
+
+
+function ec_generator_octet(spec)
+    x, y = generator(spec)
+    return octet(x, y, spec)
+end
+
+ec_generator_octet(ctx::ECDSAContext) = ec_generator_octet(ctx.curve)
+
+
+function sign(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; k::BigInt)
+
+    P = specialize(ECPoint, ctx.curve) # additional parameters could be passed here if needed for different backends
+    G = P <| generator # in this setting P can also be soft typed
+
+    e = H(message, ctx.hasher)
+
+    R = k*G
+
+    x̄ = octet(gx(R)) |> octet2int
+
+    n = order(P)
+    r = x̄ % n
+
+    s = modinv(k, n) * (e + key * r) % n
+
+    return DSA(r, s)
+end
+
+
+sign(ctx::ECDSAContext, message::Vector{UInt8}, key::BigInt; k::BigInt) = sign(ctx, message, ec_generator_octet(ctx), key; k)
+
+
+
+function verify(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, pbkey::Vector{UInt8}, signature::DSA)
+
+    (; r, s) = signature
+
+    P = specialize(ECPoint, ctx.curve) 
+    G = P <| generator 
+    Q = P <| pbkey
+
+    e = H(message, ctx.hasher)
+    n = order(P)
+
+    @assert 1 < r < n - 1
+    @assert 1 < s < n - 1
+
+    c = modinv(s, n)
+
+    u₁ = e*c % n
+    u₂ = r*c % n
+
+    W = u₁*G + u₂*Q 
+
+    x̄ = octet(gx(W)) |> octet2int
+    
+    ν = x̄ % n
+
+    return ν == r
+end
+
+
+verify(ctx::ECDSAContext, message::Vector{UInt8}, pbkey::Vector{UInt8}, signature::DSA) = verify(ctx, message, ec_generator_octet(ctx), pbkey, signature)
+
+
+
+function public_key(ctx::ECDSAContext, generator::Vector{UInt8}, secret_key::BigInt; mode=:compressed)
+    
+    P = specialize(ECPoint, ctx.curve)
+    G = P <| generator
+
+    Q = secret_key * G
+
+    return octet(Q; mode)
+end
+
+public_key(ctx::ECDSAContext, secret_key::BigInt; mode=:compressed) = public_key(ctx, ec_generator_octet(ctx), secret_key; mode)
+
+
+export sign, verify, DSA, ECDSAContext, public_key
 
 end # module
