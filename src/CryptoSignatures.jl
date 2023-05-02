@@ -70,10 +70,8 @@ function sign(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UInt8
     e = H(message, ctx.hasher)
 
     R = k*G
-    
-    #x̄ = octet(gx(R)) |> octet2int # Why don't I do things directly?
 
-    x̄ = gx(R) # Why don't I do things directly?
+    x̄ = gx(R) 
 
     n = order(P)
     r = x̄ % n
@@ -137,7 +135,6 @@ public_key(ctx::ECDSAContext, private_key::BigInt; mode=:compressed) = public_ke
 
 
 struct DSAContext
-    #group::Spec # or MODP
     group::MODP
     hasher::Union{String, Nothing}
 end
@@ -217,10 +214,7 @@ end
 
 public_key(ctx::DSAContext, private_key::BigInt) = public_key(ctx, generator_octet(ctx), private_key)
 
-
 generate_key(ctx::DSAContext) = generate_key(order(ctx.group))
-#bitlength(order(ctx.group))) % order(ctx.group)
-
 
 export sign, verify, DSA, ECDSAContext, public_key, DSAContext
 
