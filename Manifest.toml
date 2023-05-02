@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "60769a1b80a0025cbf8cdd7028db69da93157a7d"
+project_hash = "5e43a7552ab33bc633c1e3fad3abe2d0d434ef75"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -16,11 +16,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[deps.CryptoGroups]]
 deps = ["CryptoUtils", "Nettle", "Primes", "Random"]
-git-tree-sha1 = "2eb45ba3c038ec078bec60a7b45d1e5c7533de0c"
-repo-rev = "master"
-repo-url = "../CryptoGroups"
+git-tree-sha1 = "75132d9ff874e0b2c05996f3393869efbdea1cdd"
 uuid = "bc997328-bedd-407e-bcd3-5758e064a52d"
-version = "0.2.2"
+version = "0.3.0"
 
 [[deps.CryptoUtils]]
 deps = ["Primes"]
@@ -100,9 +98,9 @@ version = "2022.2.1"
 
 [[deps.Nettle]]
 deps = ["Libdl", "Nettle_jll"]
-git-tree-sha1 = "f96a7485d2404f90c7c5c417e64d231f8edc5f08"
+git-tree-sha1 = "6fa48cbae828267848ee32c1bb31d1652e210d7d"
 uuid = "49dea1ee-f6fa-5aa6-9a11-8816cee7d4b9"
-version = "0.5.2"
+version = "1.0.0"
 
 [[deps.Nettle_jll]]
 deps = ["Artifacts", "GMP_jll", "JLLWrappers", "Libdl", "Pkg"]

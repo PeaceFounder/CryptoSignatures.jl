@@ -9,16 +9,18 @@ The first step is to select a curve to make a cryptographic signature with an el
 
 ```julia
 using CryptoSignatures
-import CryptoGroups.Specs: Curve_P_192
-ctx = ECDSAContext(Curve_P_192, "sha1")
+import CryptoGroups
+
+curve = CryptoGroups.curve("secp192r1")
+ctx = ECDSAContext(curve, "sha1")
 ```
 
-where `ctx` stores all relevant parameters on how to make and verify signatures. The hash function name is specified as the second argument which is passed to `Nettle`. In case hashing is done externally to avoid hashing twice nothing can be passed as an argument like `ECDSAContext(Curve_P_192, nothing)`. 
+where `ctx` stores all relevant parameters on how to make and verify signatures. The second argument specifies a hash function name, which is forwarded to `Nettle`. In case hashing is done externally to avoid hashing twice, nothing can be passed as an argument like `ECDSAContext(Curve_P_192, nothing)`. 
 
 To make a signature, first, we need to pick a key and calculate a corresponding public key:
 
 ```julia
-private_key = 651056770906015076056810763456358567190100156695615665659
+private_key = CryptoSignatures.generate_key(ctx)
 public_key = CryptoSignatures.public_key(ctx, private_key; mode = :uncompressed)
 ```
 
@@ -27,11 +29,10 @@ where `public_key` is stored as an octet in uncompressed notation, available are
 Let's say our message is `M = "abc"`. That we can sign with a private key:
 
 ```julia
-k = 6140507067065001063065065565667405560006161556565665656654
-signature = CryptoSignatures.sign(ctx, Vector{UInt8}(M), private_key; k)
+signature = CryptoSignatures.sign(ctx, Vector{UInt8}(M), private_key)
 ```
 
-where `k` is a one-time secret random number; in some instances, it is necessary to issue a signature on a different generator which can be done by passing it as an argument behind the message `sign(ctx, message, generator, private_key)`. 
+Note that the signature is issued with a `k` value derived deterministically with a pseudorandom number generator where a seed contains a message, private key and a global seed `CryptoSignatures.SEED` computed when module is loaded. A signature on a relative generator which can be done by passing it as an argument behind the message `sign(ctx, message, generator, private_key)`.
 
 The message can be verified with `verify` method using the public key and the issued signature:
 
@@ -39,7 +40,40 @@ The message can be verified with `verify` method using the public key and the is
 CryptoSignatures.verify(ctx, Vector{UInt8}(M), public_key, signature) == true
 ```
 
-returning `true` if the message had been issued by the owner of a `public_key`. In case the signature had been issued with a relative generator, the signature is verified as `verify(ctx, message, generator, public_key)`
+returning `true` if the message had been issued by the owner of a `public_key`. In case the signature had been issued with a relative generator, it is verified as `verify(ctx, message, generator, public_key)`.
+
+## DSA
+
+To use an ordinary DSA with modular arithmetics, we need to instantiate the `DSAContext`. To do so, we need to select a prime modulus `p` for which we know group order `q` and generator `g`. With `CryptoGroups` we can generate those parameters and then use them for creating `DSAContext`:
+
+```julia
+using CryptoSignatures
+import CryptoGroups.Specs: generate_pq, generate_g, MODP
+
+p, q = generate_qp(100) # group order with 100 bits as an example (use > 2000)!
+g = generate_g(p, q)
+
+group = MODP(; p, q, g)
+
+ctx = DSAContext(group, "sha1")
+```
+
+As for `ECDSA` context, we generate a private key and a public key:
+
+```julia
+private_key = CryptoSignatures.generate_key(ctx)
+public_key = CryptoSignatures.public_key(ctx, private_key)
+```
+
+Which can be used to sign and verify messages as before:
+
+```julia
+M = "abc"
+
+signature = CryptoSignatures.sign(ctx, Vector{UInt8}(M), private_key)
+
+verify(ctx, Vector{UInt8}(M), public_key, signature) == true
+```
 
 ## Security Considerations
 
@@ -53,6 +87,6 @@ In a nutshell, use it for small projects, but when you become big, don't shy awa
 
 ## Further Work
 
- An implementation of DSA for modular prime groups is coming shortly. The performance could be addressed by wrapping the OpenSSL libcrypto library for doing operations on elliptic curves. RSA signatures could be something to add, as well as a blind signature algorithm. 
+The performance could be addressed by wrapping the OpenSSL libcrypto library for doing operations on elliptic curves. RSA signatures could be something to add, as well as a blind signature algorithm. 
 
  
