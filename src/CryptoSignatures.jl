@@ -16,30 +16,42 @@ function generate_key(order::Integer)
     n = bitlength(order) 
 
     prg = PRG("sha256"; s = UInt8[SEED..., reinterpret(UInt8, [COUNTER[]])...])
-    key = rand(prg, BigInt; n)
+    key = rand(prg, BigInt; n) % order
 
     COUNTER[] += 1
 
-    return key % order
+    # Generally only relevant when exponents are small
+    if key == 0 || key == 1
+        return generate_key(order)
+    else
+        return key
+    end
 end
 
-function generate_k(order::Integer, key::BigInt, message::Vector{UInt8})
+function generate_k(order::Integer, key::BigInt, message::Vector{UInt8}, counter::UInt8 = 0x00)
 
     n = bitlength(order) 
 
     key_bytes = int2octet(key, n)
 
-    prg = PRG("sha256"; s = UInt8[SEED..., key_bytes..., message...])
-    k = rand(prg, BigInt; n)
-    
-    return k % order
+    prg = PRG("sha256"; s = UInt8[SEED..., key_bytes..., message..., counter])
+    k = rand(prg, BigInt; n) % order
+
+    if k == 0 || k == 1
+        return generate_k(order, key, message, counter + 0x01) 
+    else
+        return k
+    end
 end
 
+#generate_k(order::Integer, key::BigInt, message::Vector{UInt8}, counter::Integer) = generate_k(order, key, message, UInt8(counter))
 
 struct DSA
     r::BigInt
     s::BigInt
 end
+
+Base.:(==)(x::DSA, y::DSA) = x.r == y.r && x.s == y.s
 
 struct ECDSAContext
     curve::Union{ECP, EC2N, Koblitz}
@@ -62,7 +74,7 @@ end
 generator_octet(ctx::ECDSAContext) = generator_octet(ctx.curve)
 
 
-function sign(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; k::BigInt = generate_k(order(ctx.curve), key, message))
+function sign(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; counter::UInt8 = 0x00, k::BigInt = generate_k(order(ctx.curve), key, message, counter))
 
     P = specialize(ECPoint, ctx.curve) # additional parameters could be passed here if needed for different backends
     G = P <| generator # in this setting P can also be soft typed
@@ -78,12 +90,15 @@ function sign(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UInt8
 
     s = modinv(k, n) * (e + key * r) % n
 
-    return DSA(r, s)
+    if 1 < r < n - 1 && 1 < s < n - 1
+        return DSA(r, s)
+    else
+        return sign(ctx, message, generator, key; counter = counter + 0x01)
+    end
 end
 
 
 sign(ctx::ECDSAContext, message::Vector{UInt8}, key::BigInt; kwargs...) = sign(ctx, message, generator_octet(ctx), key; kwargs...)
-
 
 
 function verify(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, pbkey::Vector{UInt8}, signature::DSA)
@@ -105,13 +120,16 @@ function verify(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UIn
     u₁ = e*c % n
     u₂ = r*c % n
 
-    W = u₁*G + u₂*Q 
+    if u₁ == 0
+        W = u₂*Q 
+    elseif u₂ == 0
+        W = u₁*G
+    else
+        W = u₁*G + u₂*Q 
+    end
     
-    #x̄ = octet(gx(W)) |> octet2int
-
     x̄ = gx(W)
-    
-    ν = x̄ % n
+    ν = x̄ % n # I could also rewrite it as ν = W % n
 
     return ν == r
 end
@@ -153,7 +171,9 @@ generator_octet(ctx::DSAContext) = generator_octet(ctx.group)
 
 using CryptoGroups: @hex_str
 
-function sign(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; k::BigInt = generate_k(order(ctx.group), key, message))
+#function sign(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; counter::UInt8 = 0, k::BigInt = generate_k(order(ctx.group), key, message, counter))
+
+function sign(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; counter::UInt8 = 0x00, k::BigInt = generate_k(order(ctx.group), key, message, counter))
 
     G = specialize(PGroup, ctx.group)
     g = G <| generator
@@ -164,8 +184,12 @@ function sign(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8},
     r = g^k % q
 
     s = modinv(k, q) * (e + key * r) % q
-    
-    return DSA(r, s)
+
+    if 1 < r < q - 1 && 1 < s < q - 1
+        return DSA(r, s)
+    else
+        return sign(ctx, message, generator, key; counter = counter + 0x01)
+    end
 end
 
 
@@ -192,7 +216,14 @@ function verify(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8
     u1 = e * w % q
     u2 = r * w % q
 
-    v = g^u1 * y^u2 % q
+    # # Raising group element to 0 not allowed. Perhaps need to change that.
+    if u1 == 0
+        v = y^u2 % q
+    elseif u2 == 0
+        v = g^u1 % q
+    else
+        v = g^u1 * y^u2 % q
+    end
     
     return v == r
 end
@@ -202,7 +233,7 @@ verify(ctx::DSAContext, message::Vector{UInt8}, pbkey::Vector{UInt8}, signature:
 
 
 function public_key(ctx::DSAContext, generator::Vector{UInt8}, private_key::BigInt)
-    
+
     G = specialize(PGroup, ctx.group)
 
     g = G <| generator 

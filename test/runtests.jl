@@ -17,3 +17,7 @@ end
 module DSAExampleTest
 include("dsa_example.jl")
 end
+
+module DegeneracyTest
+include("degenracy.jl")
+end

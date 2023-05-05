@@ -1,7 +1,7 @@
 name = "CryptoSignatures"
 uuid = "35cc5888-0c46-470e-89c7-eafcaf79a1aa"
 authors = ["Janis Erdmanis <akels14@gmail.com>"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 CryptoGroups = "bc997328-bedd-407e-bcd3-5758e064a52d"
@@ -9,9 +9,9 @@ Nettle = "49dea1ee-f6fa-5aa6-9a11-8816cee7d4b9"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
+CryptoGroups = "0.3"
 Nettle = "1"
 julia = "1"
-CryptoGroups = "0.3"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
