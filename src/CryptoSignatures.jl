@@ -4,21 +4,24 @@ using CryptoGroups: generator, specialize, octet, <|, gx, gy, ECP, EC2N, Koblitz
 using CryptoGroups.Specs: octet2int, PRG, int2octet, bitlength
 
 using Nettle
-
 using Random: RandomDevice
-const SEED = rand(RandomDevice(), UInt8, 128)
 
-const COUNTER = Ref{Int}(0)
+global SEED::Vector{UInt8}
+global COUNTER::Int = 0
+
+function __init__()
+    global SEED = rand(RandomDevice(), UInt8, 128)
+end
 
 
 function generate_key(order::Integer)
 
     n = bitlength(order) 
 
-    prg = PRG("sha256"; s = UInt8[SEED..., reinterpret(UInt8, [COUNTER[]])...])
+    prg = PRG("sha256"; s = UInt8[SEED..., reinterpret(UInt8, [COUNTER])...])
     key = rand(prg, BigInt; n) % order
 
-    COUNTER[] += 1
+    global COUNTER += 1
 
     # Generally only relevant when exponents are small
     if key == 0 || key == 1
@@ -44,7 +47,6 @@ function generate_k(order::Integer, key::BigInt, message::Vector{UInt8}, counter
     end
 end
 
-#generate_k(order::Integer, key::BigInt, message::Vector{UInt8}, counter::Integer) = generate_k(order, key, message, UInt8(counter))
 
 struct DSA
     r::BigInt
@@ -168,10 +170,6 @@ end
 
 generator_octet(ctx::DSAContext) = generator_octet(ctx.group)
 
-
-using CryptoGroups: @hex_str
-
-#function sign(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; counter::UInt8 = 0, k::BigInt = generate_k(order(ctx.group), key, message, counter))
 
 function sign(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; counter::UInt8 = 0x00, k::BigInt = generate_k(order(ctx.group), key, message, counter))
 
