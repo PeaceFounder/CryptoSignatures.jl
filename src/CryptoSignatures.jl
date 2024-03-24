@@ -3,8 +3,6 @@ module CryptoSignatures
 using CryptoGroups: generator, specialize, octet, <|, gx, gy, ECP, EC2N, Koblitz, CryptoGroups, ECPoint, order, modinv, MODP, PGroup
 using CryptoGroups.Specs: octet2int, PRG, int2octet, bitlength
 
-CryptoGroups.set_strict_mode(true)
-
 using Nettle
 using Random: RandomDevice
 
@@ -12,6 +10,7 @@ global SEED::Vector{UInt8}
 global COUNTER::Int = 0
 
 function __init__()
+    CryptoGroups.set_strict_mode(true)
     global SEED = rand(RandomDevice(), UInt8, 128)
 end
 
