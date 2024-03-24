@@ -9,7 +9,7 @@ Nettle = "49dea1ee-f6fa-5aa6-9a11-8816cee7d4b9"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
-CryptoGroups = "0.3 - 0.4"
+CryptoGroups = "0.4"
 Nettle = "1"
 julia = "1"
 
