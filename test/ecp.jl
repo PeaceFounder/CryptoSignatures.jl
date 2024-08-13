@@ -1,6 +1,7 @@
 using Test
 using CryptoSignatures
-using CryptoGroups: ECP, @hex_str
+using CryptoGroups.Specs: ECP
+using CryptoGroups.Utils: @hex_str
 
 curve = ECP(;
                  p = 6277101735386680763835789423207666416083908700390324961279,

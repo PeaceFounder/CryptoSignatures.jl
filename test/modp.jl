@@ -2,8 +2,8 @@
 
 using Test
 using CryptoSignatures
-using CryptoGroups: MODP, @hex_str
-using CryptoGroups.Specs: octet2int
+using CryptoGroups.Specs: MODP
+using CryptoGroups.Utils: octet2int, @hex_str
 
 
 group = MODP(; 

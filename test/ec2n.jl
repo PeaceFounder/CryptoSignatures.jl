@@ -1,6 +1,7 @@
 using Test
 using CryptoSignatures
-using CryptoGroups: EC2N, PB, @hex_str
+using CryptoGroups.Specs: EC2N, PB
+using CryptoGroups.Utils: @hex_str
 
 
 basis = PB(hex"80000000 00000000 00000000 00000000 00000000 00000201", 191)

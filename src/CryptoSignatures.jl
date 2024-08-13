@@ -1,7 +1,12 @@
 module CryptoSignatures
 
-using CryptoGroups: generator, specialize, octet, <|, gx, gy, ECP, EC2N, Koblitz, CryptoGroups, ECPoint, order, modinv, MODP, PGroup
-using CryptoGroups.Specs: octet2int, PRG, int2octet, bitlength
+using CryptoGroups: CryptoGroups, generator, concretize_type, octet, order, PGroup
+using CryptoGroups.Curves: ECPoint, gx, gy
+using CryptoGroups.Specs: MODP, ECP, EC2N, Koblitz, modulus
+using CryptoGroups.Utils: octet2int, int2octet, modinv
+
+using CryptoPRG: bitlength
+using CryptoPRG.Verificatum: PRG
 
 using Nettle
 using Random: RandomDevice
@@ -70,8 +75,11 @@ H(message::Vector{UInt8}, ::Nothing) = octet2int(message) # for situations where
 
 
 function generator_octet(spec::Union{ECP, EC2N, Koblitz})
-    x, y = generator(spec)
-    return octet(x, y, spec)
+
+    P = concretize_type(ECPoint, spec)
+    point = P(generator(spec))
+
+    return octet(point)
 end
 
 generator_octet(ctx::ECDSAContext) = generator_octet(ctx.curve)
@@ -79,8 +87,8 @@ generator_octet(ctx::ECDSAContext) = generator_octet(ctx.curve)
 
 function sign(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; counter::UInt8 = 0x00, k::BigInt = generate_k(order(ctx.curve), key, message, counter))
 
-    P = specialize(ECPoint, ctx.curve) # additional parameters could be passed here if needed for different backends
-    G = P <| generator # in this setting P can also be soft typed
+    P = concretize_type(ECPoint, ctx.curve) # additional parameters could be passed here if needed for different backends
+    G = P(generator) # in this setting P can also be soft typed
 
     e = H(message, ctx.hasher)
 
@@ -108,9 +116,9 @@ function verify(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UIn
 
     (; r, s) = signature
 
-    P = specialize(ECPoint, ctx.curve) 
-    G = P <| generator 
-    Q = P <| pbkey
+    P = concretize_type(ECPoint, ctx.curve) 
+    G = P(generator) 
+    Q = P(pbkey)
 
     e = H(message, ctx.hasher)
     n = order(P)
@@ -144,8 +152,8 @@ verify(ctx::ECDSAContext, message::Vector{UInt8}, pbkey::Vector{UInt8}, signatur
 
 function public_key(ctx::ECDSAContext, generator::Vector{UInt8}, private_key::BigInt; mode=:compressed)
     
-    P = specialize(ECPoint, ctx.curve)
-    G = P <| generator
+    P = concretize_type(ECPoint, ctx.curve)
+    G = P(generator)
 
     Q = private_key * G
 
@@ -166,7 +174,7 @@ CryptoGroups.generator(ctx::DSAContext) = generator(ctx.group)
 
 function generator_octet(spec::MODP)
     g = generator(spec)
-    return octet(g, spec)
+    return int2octet(g, bitlength(modulus(spec)))
 end
 
 generator_octet(ctx::DSAContext) = generator_octet(ctx.group)
@@ -174,8 +182,8 @@ generator_octet(ctx::DSAContext) = generator_octet(ctx.group)
 
 function sign(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, key::BigInt; counter::UInt8 = 0x00, k::BigInt = generate_k(order(ctx.group), key, message, counter))
 
-    G = specialize(PGroup, ctx.group)
-    g = G <| generator
+    G = concretize_type(PGroup, ctx.group)
+    g = G(generator)
 
     e = H(message, ctx.hasher)
     q = order(G)
@@ -198,10 +206,10 @@ sign(ctx::DSAContext, message::Vector{UInt8}, key::BigInt; kwargs...) = sign(ctx
 function verify(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8}, pbkey::Vector{UInt8}, signature::DSA)
 
     (; r, s) = signature
-    G = specialize(PGroup, ctx.group)
+    G = concretize_type(PGroup, ctx.group)
 
-    g = G <| generator
-    y = G <| pbkey
+    g = G(generator)
+    y = G(pbkey)
 
 
     e = H(message, ctx.hasher)    
@@ -233,9 +241,9 @@ verify(ctx::DSAContext, message::Vector{UInt8}, pbkey::Vector{UInt8}, signature:
 
 function public_key(ctx::DSAContext, generator::Vector{UInt8}, private_key::BigInt)
 
-    G = specialize(PGroup, ctx.group)
+    G = concretize_type(PGroup, ctx.group)
 
-    g = G <| generator 
+    g = G(generator)
 
     Q = g^private_key
 
