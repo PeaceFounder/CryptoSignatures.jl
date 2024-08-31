@@ -3,7 +3,7 @@ module CryptoSignatures
 using CryptoGroups: CryptoGroups, generator, concretize_type, octet, order, PGroup
 using CryptoGroups.Curves: ECPoint, gx, gy
 using CryptoGroups.Specs: MODP, ECP, EC2N, Koblitz, modulus
-using CryptoGroups.Utils: octet2int, int2octet, modinv
+using CryptoGroups.Utils: octet2int, int2octet
 
 using CryptoPRG: bitlength
 using CryptoPRG.Verificatum: PRG
@@ -99,7 +99,7 @@ function sign(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UInt8
     n = order(P)
     r = x̄ % n
 
-    s = modinv(k, n) * (e + key * r) % n
+    s = invmod(k, n) * (e + key * r) % n
 
     if 1 < r < n - 1 && 1 < s < n - 1
         return DSA(r, s)
@@ -126,7 +126,7 @@ function verify(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UIn
     @assert 1 < r < n - 1
     @assert 1 < s < n - 1
 
-    c = modinv(s, n)
+    c = invmod(s, n)
 
     u₁ = e*c % n
     u₂ = r*c % n
@@ -190,7 +190,7 @@ function sign(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8},
 
     r = g^k % q
 
-    s = modinv(k, q) * (e + key * r) % q
+    s = invmod(k, q) * (e + key * r) % q
 
     if 1 < r < q - 1 && 1 < s < q - 1
         return DSA(r, s)
@@ -218,7 +218,7 @@ function verify(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8
     @assert 1 < r < q - 1
     @assert 1 < s < q - 1
 
-    w = modinv(s, q)
+    w = invmod(s, q)
     
     u1 = e * w % q
     u2 = r * w % q

@@ -1,5 +1,4 @@
 # CryptoSignatures.jl
-[![Build Status](https://travis-ci.com/PeaceFounder/CryptoSignatures.jl.svg?branch=master)](https://travis-ci.com/PeaceFounder/CryptoSignatures.jl)
 
 `CryptoSignatures.jl` aims to be a versatile cryptographic signature library in Julia. Currently supports digital signature algorithm for all available elliptic curves in X9.62 specification. Implementation for modular prime groups is coming shortly.
 
