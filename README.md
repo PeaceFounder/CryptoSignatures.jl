@@ -1,5 +1,7 @@
 # CryptoSignatures.jl
 
+[![codecov](https://codecov.io/gh/PeaceFounder/CryptoSignatures.jl/graph/badge.svg?token=9MSBVRQQTU)](https://codecov.io/gh/PeaceFounder/CryptoSignatures.jl)
+
 `CryptoSignatures.jl` aims to be a versatile cryptographic signature library in Julia. Currently supports digital signature algorithm for all available elliptic curves in X9.62 specification. Implementation for modular prime groups is coming shortly.
 
 ## ECDSA
