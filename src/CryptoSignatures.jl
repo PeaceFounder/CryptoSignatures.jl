@@ -3,7 +3,7 @@ module CryptoSignatures
 using CryptoGroups: CryptoGroups, generator, concretize_type, octet, order, PGroup
 using CryptoGroups.Curves: ECPoint, gx, gy
 using CryptoGroups.Specs: MODP, ECP, EC2N, Koblitz, modulus
-using CryptoGroups.Utils: octet2int, int2octet
+using CryptoGroups.Utils: octet2int, int2octet, @check
 
 using CryptoPRG: bitlength
 using CryptoPRG.Verificatum: PRG
@@ -123,8 +123,8 @@ function verify(ctx::ECDSAContext, message::Vector{UInt8}, generator::Vector{UIn
     e = H(message, ctx.hasher)
     n = order(P)
 
-    @assert 1 < r < n - 1
-    @assert 1 < s < n - 1
+    @check 1 < r < n - 1
+    @check 1 < s < n - 1
 
     c = invmod(s, n)
 
@@ -215,8 +215,8 @@ function verify(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8
     e = H(message, ctx.hasher)    
     q = order(G)
 
-    @assert 1 < r < q - 1
-    @assert 1 < s < q - 1
+    @check 1 < r < q - 1
+    @check 1 < s < q - 1
 
     w = invmod(s, q)
     
