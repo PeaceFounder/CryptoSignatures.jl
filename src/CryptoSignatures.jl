@@ -1,7 +1,6 @@
 module CryptoSignatures
 
 using CryptoGroups: CryptoGroups, generator, concretize_type, octet, order, PGroup, ECGroup, Group
-#using CryptoGroups.Curves: ECPoint, gx, gy
 using CryptoGroups.Specs: MODP, ECP, EC2N, Koblitz, GroupSpec
 using CryptoGroups.Utils: octet2int, int2octet, @check
 
@@ -43,7 +42,7 @@ function generate_k(order::Integer, key::BigInt, e::BigInt, counter::UInt8 = 0x0
     n = bitlength(order) 
 
     key_bytes = int2octet(key, n)
-    e_bytes = int2octet(e, n)
+    e_bytes = int2octet(e % order, n)
 
     prg = PRG("sha256"; s = UInt8[SEED..., key_bytes..., e_bytes..., counter])
     k = rand(prg, BigInt; n) % order
@@ -135,7 +134,7 @@ function sign(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8},
     G = initialize_spec_type(ctx.group) # additional parameters could be passed here if needed for different backends
     g = G(generator) # in this setting P can also be soft typed
 
-    e = H(message, ctx.hasher)
+    e = H(message, ctx.hasher) 
 
     # Is there a more idiomatic way to do this?
     if isnothing(k)
@@ -154,7 +153,7 @@ function verify(ctx::DSAContext, message::Vector{UInt8}, generator::Vector{UInt8
     g = G(generator) 
     y = G(pbkey)
 
-    e = H(message, ctx.hasher)
+    e = H(message, ctx.hasher) 
 
     return verify(e, g, y, signature)
 end
