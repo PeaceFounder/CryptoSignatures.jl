@@ -2,8 +2,8 @@ using Test
 using CryptoSignatures
 import CryptoGroups
 
-curve = CryptoGroups.curve("secp192r1")
-ctx = ECDSAContext(curve, "sha1")
+curve = CryptoGroups.spec(:secp192r1)
+ctx = DSAContext(curve, "sha1")
 
 private_key = CryptoSignatures.generate_key(ctx)
 public_key = CryptoSignatures.public_key(ctx, private_key; mode = :uncompressed)

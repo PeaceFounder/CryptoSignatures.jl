@@ -12,11 +12,11 @@ The first step is to select a curve to make a cryptographic signature with an el
 using CryptoSignatures
 import CryptoGroups
 
-curve = CryptoGroups.curve("secp192r1")
-ctx = ECDSAContext(curve, "sha1")
+curve = CryptoGroups.spec(:secp192r1)
+ctx = DSAContext(curve, "sha1")
 ```
 
-where `ctx` stores all relevant parameters on how to make and verify signatures. The second argument specifies a hash function name, which is forwarded to `Nettle`. In case hashing is done externally to avoid hashing twice, nothing can be passed as an argument like `ECDSAContext(Curve_P_192, nothing)`. 
+where `ctx` stores all relevant parameters on how to make and verify signatures. The second argument specifies a hash function name, which is forwarded to `Nettle`. In case hashing is done externally to avoid hashing twice, nothing can be passed as an argument like `DSAContext(Curve_P_192, nothing)`. 
 
 To make a signature, first, we need to pick a key and calculate a corresponding public key:
 
@@ -49,13 +49,9 @@ To use an ordinary DSA with modular arithmetics, we need to instantiate the `DSA
 
 ```julia
 using CryptoSignatures
-import CryptoGroups.Specs: generate_pq, generate_g, MODP
+import CryptoGroups 
 
-p, q = generate_qp(100) # group order with 100 bits as an example (use > 2000)!
-g = generate_g(p, q)
-
-group = MODP(; p, q, g)
-
+group = CryptoGroups.spec(:RFC5114_2048_224)
 ctx = DSAContext(group, "sha1")
 ```
 

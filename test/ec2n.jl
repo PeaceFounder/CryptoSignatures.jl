@@ -14,7 +14,7 @@ curve = EC2N(basis;
                   cofactor = 2
 )
 
-ctx = ECDSAContext(curve, "sha1")
+ctx = DSAContext(curve, "sha1")
 
 
 d = 1275552191113212300012030439187146164646146646466749494799

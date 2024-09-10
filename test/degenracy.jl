@@ -20,7 +20,7 @@ end
 
 
 curve = ECP(; p = 23, a = 1, b = 4, n = 29, cofactor = 1, Gx = 0, Gy = 2)
-ctx = ECDSAContext(curve, "sha256")
+ctx = DSAContext(curve, "sha256")
 
 for i in 0:255
 
