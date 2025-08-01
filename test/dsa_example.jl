@@ -1,10 +1,8 @@
 using Test
 using CryptoSignatures
-import CryptoGroups.Specs: generate_qp, generate_g, MODP
+import CryptoGroups.Specs: MODP
 
-q, p = generate_qp(100) # group order with 100 bits as an example (use > 2000)!
-g = generate_g(p, q)
-
+p, q, g = 23, 11, 2
 group = MODP(; p, q, g)
 
 ctx = DSAContext(group, "sha256")

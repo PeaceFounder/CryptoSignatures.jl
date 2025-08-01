@@ -2,7 +2,7 @@ module CryptoSignatures
 
 using CryptoGroups: CryptoGroups, generator, concretize_type, octet, order, PGroup, ECGroup, Group
 using CryptoGroups.Specs: MODP, ECP, EC2N, Koblitz, GroupSpec
-using CryptoGroups.Utils: octet2int, int2octet, @check
+using CryptoGroups.Utils: octet2int, int2octet!, @check
 
 using CryptoPRG: bitlength
 using CryptoPRG.Verificatum: PRG
@@ -36,7 +36,12 @@ function generate_key(order::Integer)
     end
 end
 
-#function generate_k(order::Integer, key::BigInt, message::Vector{UInt8}, counter::UInt8 = 0x00)
+function int2octet(x::Integer, n::Int)
+    buffer = Vector{UInt8}(undef, n)
+    int2octet!(buffer, x)
+    return buffer
+end
+
 function generate_k(order::Integer, key::BigInt, e::BigInt, counter::UInt8 = 0x00)
 
     n = bitlength(order) 
@@ -90,7 +95,6 @@ function verify(e::BigInt, g::G, y::G, signature::DSA) where G <: Group
     u1 = e * w % q
     u2 = r * w % q
 
-    # # Raising group element to 0 not allowed. Perhaps need to change that.
     if u1 == 0
         v = y^u2 % q
     elseif u2 == 0
